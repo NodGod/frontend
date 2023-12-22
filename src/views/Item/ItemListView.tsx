@@ -14,6 +14,9 @@ const ItemListView = () => {
   const [toDelete, setToDelete] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
+  const ROLE = sessionStorage.getItem("ROLE");
+    const ORG = sessionStorage.getItem("ORG");
+    const APP = sessionStorage.getItem("APPROVED");
   const emptyOrganiser: Organiser = {
     id: 0,
     name: "",
@@ -46,7 +49,7 @@ const [newItem, setNewItem] = useState<Item>(emptyItem);
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`/api/organisers/${organiserId}/events/${eventId}/items`);
+        const response = await axios.get(`/api/organisers/${organiserId}/events/${eventId}/items`, {params: {token: sessionStorage.getItem("TOKEN")}});
         console.log('Response data:', response.data.items);
         setData(response.data.items);
       } catch (error) {
@@ -60,7 +63,7 @@ const [newItem, setNewItem] = useState<Item>(emptyItem);
     useEffect(() => {
         const fetchEvents = async () => {
         try {
-            const response = await axios.get(`/api/organisers/${organiserId}/events`);
+            const response = await axios.get(`/api/organisers/${organiserId}/events`, {params: {token: sessionStorage.getItem("TOKEN")}});
             setEvents(response.data.events);
         } catch (error) {
             console.error('Error fetching events:', error);
@@ -90,7 +93,7 @@ const deleteItem = async (e: SyntheticEvent) => {
     e.preventDefault();
     if (selectedItem) {
         const URL = `/api/organisers/${organiserId}/events/${eventId}/items/` + selectedItem.id.toString();
-        const response = await axios.delete(URL);
+        const response = await axios.delete(URL, {params: {token: sessionStorage.getItem("TOKEN")}});
         console.log(response);
         if (response.status == 204) {
             const updatedList = data.filter(
@@ -107,7 +110,7 @@ const editItem = async(e: SyntheticEvent) => {
     e.preventDefault();
     if (selectedItem) {
         const URL = `/api/organisers/${organiserId}/events/${eventId}/items/` + selectedItem.id.toString();
-        const response = await axios.put(URL, ({name: selectedItem.name, quantity: selectedItem.quantity, price: selectedItem.price}));
+        const response = await axios.put(URL, ({name: selectedItem.name, quantity: selectedItem.quantity, price: selectedItem.price}), {params: {token: sessionStorage.getItem("TOKEN")}});
         console.log(response);
         if (response.status == 200) {
         const updatedList = data.map((data) => {
@@ -128,7 +131,7 @@ const editItem = async(e: SyntheticEvent) => {
 const createItem = async(e: SyntheticEvent) => {
     e.preventDefault();
     console.log(({name: newItem.name, quantity: newItem.quantity, price: newItem.price, eventId: newItem.eventId}));
-    const response = await axios.post(`/api/organisers/${organiserId}/events/${eventId}/items`, ({name: newItem.name, quantity: newItem.quantity, price: newItem.price, eventId: eventId}))
+    const response = await axios.post(`/api/organisers/${organiserId}/events/${eventId}/items`, ({name: newItem.name, quantity: newItem.quantity, price: newItem.price, eventId: eventId}), {params: {token: sessionStorage.getItem("TOKEN")}})
     console.log(response);
     if (response.status == 201) {
         newItem.id = response.data.item.id;
@@ -142,9 +145,9 @@ const createItem = async(e: SyntheticEvent) => {
   return (
     <div>
         <h2>Item list</h2>
-        <Button variant="success" onClick={() => setShowModal(true)}>
+        {ROLE == "1" ||  (ROLE == "0" && ORG == organiserId && APP == "true") ? (<Button variant="success" onClick={() => setShowModal(true)}>
             Add item
-        </Button>
+        </Button>) : (<></>)}
         {Array.isArray(data) && data.length > 0 ? (
           <Table striped bordered hover>
           <thead>
@@ -162,7 +165,7 @@ const createItem = async(e: SyntheticEvent) => {
               <td>{data.name}</td>
               <td>{data.quantity}</td>
               <td>{data.price}</td>
-              <td>
+              {ROLE == "1" ||  (ROLE == "0" && ORG == organiserId && APP == "true") ? (<td>
               <Button
                         variant='primary'
                         onClick={() => chooseItemEdit(data)}
@@ -175,7 +178,7 @@ const createItem = async(e: SyntheticEvent) => {
                     >
                         Delete
                     </Button>
-              </td>
+              </td>) : (<></>)}
               </tr>
           ))}
           </tbody>

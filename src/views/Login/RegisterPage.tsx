@@ -58,6 +58,14 @@ const RegisterForm = () => {
                         "NAME",
                         response.data.user.name
                     );
+                    sessionStorage.setItem(
+                        "ORG",
+                        response.data.user.organisation.id
+                    );
+                    sessionStorage.setItem(
+                        "APPROVED",
+                        response.data.user.approved
+                    );
                     navigate("/")
                 }
             }

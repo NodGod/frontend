@@ -10,6 +10,7 @@ import EventListView from "./views/Event/EventListView";
 import ItemListView from "./views/Item/ItemListView";
 import LoginPage from "./views/Login/LoginPage";
 import RegisterPage from "./views/Login/RegisterPage";
+import UserListView from "./views/Users/UsersListView";
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <Route path="/home" element={<HomeView />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/users" element={<UserListView />} />
             <Route path="/organisers" element={<OrganiserListView />} />
             <Route path="/organisers/:orgId/events" element={<EventListView />} />
             <Route path="/organisers/:orgId/events/:eventId/items" element={<ItemListView />} />

@@ -10,6 +10,9 @@ const OrganiserListView = () => {
     const [showModal, setShowModal] = useState<boolean>(false);
     const [toDelete, setToDelete] = useState<boolean>(false);
     const [selectedOrganiser, setSelectedOrganiser] = useState<Organiser | null>(null);
+    const ROLE = sessionStorage.getItem("ROLE");
+    const ORG = sessionStorage.getItem("ORG");
+    const APP = sessionStorage.getItem("APPROVED");
     const emptyOrganiser: Organiser = {
         id: 0,
         name: "",
@@ -21,7 +24,8 @@ const OrganiserListView = () => {
     useEffect(() => {
         const fetchData = async () => {
         try {
-            const response = await axios.get('/api/organisers');
+            console.log(sessionStorage.getItem("ROLE"))
+            const response = await axios.get('/api/organisers', {params: {token: sessionStorage.getItem("TOKEN")}});
             console.log('Response data:', response.data.organisers);
             setData(response.data.organisers);
         } catch (error) {
@@ -53,7 +57,7 @@ const OrganiserListView = () => {
         e.preventDefault();
         if (selectedOrganiser) {
             const URL = '/api/organisers/' + selectedOrganiser.id.toString();
-            const response = await axios.delete(URL);
+            const response = await axios.delete(URL, {params: {token: sessionStorage.getItem("TOKEN")}});
             console.log(response);
             if (response.status == 204) {
                 const updatedList = data.filter(
@@ -70,7 +74,7 @@ const OrganiserListView = () => {
         e.preventDefault();
         if (selectedOrganiser) {
             const URL = '/api/organisers/' + selectedOrganiser.id.toString();
-            const response = await axios.put(URL, ({name: selectedOrganiser.name, phoneNumber: selectedOrganiser.phoneNumber, email: selectedOrganiser.email}));
+            const response = await axios.put(URL, ({name: selectedOrganiser.name, phoneNumber: selectedOrganiser.phoneNumber, email: selectedOrganiser.email}), {params: {token: sessionStorage.getItem("TOKEN")}});
             console.log(response);
             if (response.status == 200) {
             const updatedList = data.map((data) => {
@@ -90,7 +94,7 @@ const OrganiserListView = () => {
 
     const createOrganiser = async(e: SyntheticEvent) => {
         e.preventDefault();
-        const response = await axios.post('/api/organisers', ({name: newOrganiser.name, phoneNumber: newOrganiser.phoneNumber, email: newOrganiser.email}))
+        const response = await axios.post('/api/organisers', ({name: newOrganiser.name, phoneNumber: newOrganiser.phoneNumber, email: newOrganiser.email}), {params: {token: sessionStorage.getItem("TOKEN")}})
         console.log(response);
         if (response.status == 201) {
             newOrganiser.id = response.data.organiser.id;
@@ -104,9 +108,9 @@ const OrganiserListView = () => {
     return (
         <div>
             <h2>Organisation list</h2>
-            <Button variant="success" onClick={() => setShowModal(true)}>
+            {ROLE == "1" ? (<Button variant="success" onClick={() => setShowModal(true)}>
                 Add organisation
-            </Button>
+            </Button>) : (<></>)}
             {Array.isArray(data) && data.length > 0 ? (
             <Table striped bordered hover>
             <thead>
@@ -124,22 +128,22 @@ const OrganiserListView = () => {
                 <td>{data.name}</td>
                 <td>{data.phoneNumber}</td>
                 <td>{data.email}</td>
-                <td>
+                {ROLE == "1" || (ROLE == "0" && APP == "true" && ORG == data.id.toString()) ? (<td>
                     <Button
                         variant='primary'
                         onClick={() => chooseOrganiserEdit(data)}
                     >
                         Edit
                     </Button>
-                </td>
-                <td>
+                </td>) : (<td></td>)}
+                {ROLE == "1" ? (<td>
                     <Button
                         variant='danger'
                         onClick={() => chooseOrganiserDelete(data)}
                     >
                         Delete
                     </Button>
-                </td>
+                </td>) : (<></>)}
                 <td>
                     <Button
                         variant='secondary'

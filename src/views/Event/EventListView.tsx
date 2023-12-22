@@ -15,6 +15,9 @@ const EventListView = () => {
   const [toDelete, setToDelete] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [organisers, setOrganisers] = useState<Organiser[]>([]);
+  const ROLE = sessionStorage.getItem("ROLE");
+    const ORG = sessionStorage.getItem("ORG");
+    const APP = sessionStorage.getItem("APPROVED");
   const emptyOrganiser: Organiser = {
     id: 0,
     name: "",
@@ -37,7 +40,7 @@ const EventListView = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('/api/organisers/'+ organiserId +'/events');
+        const response = await axios.get('/api/organisers/'+ organiserId +'/events', {params: {token: sessionStorage.getItem("TOKEN")}});
         console.log('Response data:', response.data);
         setData(response.data.events);
       } catch (error) {
@@ -51,7 +54,7 @@ const EventListView = () => {
   useEffect(() => {
     const fetchOrganisers = async () => {
       try {
-        const response = await axios.get(`/api/organisers`);
+        const response = await axios.get(`/api/organisers`, {params: {token: sessionStorage.getItem("TOKEN")}});
         setOrganisers(response.data.organisers);
       } catch (error) {
         console.error('Error fetching organisers:', error);
@@ -83,7 +86,7 @@ const EventListView = () => {
         e.preventDefault();
         if (selectedEvent) {
             const URL = `/api/organisers/${organiserId}/events/` + selectedEvent.id.toString();
-            const response = await axios.delete(URL);
+            const response = await axios.delete(URL, {params: {token: sessionStorage.getItem("TOKEN")}});
             console.log(response);
             if (response.status == 204) {
                 const updatedList = data.filter(
@@ -100,7 +103,7 @@ const EventListView = () => {
         e.preventDefault();
         if (selectedEvent) {
             const URL = `/api/organisers/${organiserId}/events/` + selectedEvent.id.toString();
-            const response = await axios.put(URL, ({name: selectedEvent.name, description: selectedEvent.description, date: selectedEvent.date, address: selectedEvent.address, organiserId: selectedEvent.organiserId}));
+            const response = await axios.put(URL, ({name: selectedEvent.name, description: selectedEvent.description, date: selectedEvent.date, address: selectedEvent.address, organiserId: selectedEvent.organiserId}), {params: {token: sessionStorage.getItem("TOKEN")}});
             console.log(response);
             selectedEvent.organiser = response.data.event.organiser;
             if (response.status == 200) {
@@ -121,7 +124,7 @@ const EventListView = () => {
 
     const createEvent = async(e: SyntheticEvent) => {
         e.preventDefault();
-        const response = await axios.post(`/api/organisers/${organiserId}/events/`, ({name: newEvent.name, description: newEvent.description, date: newEvent.date, address: newEvent.address, organiserId: newEvent.organiserId}))
+        const response = await axios.post(`/api/organisers/${organiserId}/events/`, ({name: newEvent.name, description: newEvent.description, date: newEvent.date, address: newEvent.address, organiserId: newEvent.organiserId}), {params: {token: sessionStorage.getItem("TOKEN")}})
         console.log(response);
         newEvent.organiser = response.data.event.organiser;
         if (response.status == 201) {
@@ -136,9 +139,9 @@ const EventListView = () => {
   return (
     <div>
         <h2>Event list</h2>
-        <Button variant="success" onClick={() => setShowModal(true)}>
+        {ROLE == "1" || (ROLE == "0" && APP == "true" && ORG == organiserId) ? (<Button variant="success" onClick={() => setShowModal(true)}>
                 Add Event
-            </Button>
+            </Button>) : (<></>)}
         {Array.isArray(data) && data.length > 0 ? (
           <Table striped bordered hover>
           <thead>
@@ -160,30 +163,30 @@ const EventListView = () => {
               <td>{new Date(data.date).toLocaleDateString('lt-LT')}</td>
               <td>{data.address}</td>
               <td>{data.organiser.name}</td>
-              <td>
+                {ROLE == "1" || (ROLE == "0" && APP == "true" && ORG == organiserId) ? (<td>
                     <Button
                         variant='primary'
                         onClick={() => chooseEventEdit(data)}
                     >
                         Edit
                     </Button>
-                    </td>
-                <td>
+                    </td>) : (<></>)}
+                {ROLE == "1" || (ROLE == "0" && APP == "true" && ORG == organiserId) ? (<td>
                     <Button
                         variant='danger'
                         onClick={() => chooseEventDelete(data)}
                     >
                         Delete
                     </Button>
-                    </td>
-                <td>
+                </td>) : (<></>)}
+                {ROLE == "1" || ORG == organiserId ? (<td>
                     <Button
                         variant='secondary'
                         onClick={() => navigate(`/organisers/${organiserId}/events/${data.id}/items`)}
                     >
                         Show Items
                     </Button>
-              </td>
+              </td>) : (<></>)}
               </tr>
           ))}
           </tbody>
@@ -366,29 +369,7 @@ const EventListView = () => {
                             }}
                         />
                         </Form.Group>
-                        {/* <Form.Label htmlFor="organiser">Select Organiser</Form.Label>
-                        <InputGroup className="mb-3">
-                        <Form.Control
-                            as="select"
-                            id="organiser"
-                            onChange={(e) => {
-                            const selectedOrganiserId = parseInt(e.target.value, 10);
-                            
-                            console.log(selectedOrganiserId);
-                            setNewEvent({
-                                ...newEvent,
-                                organiserId: selectedOrganiserId,
-                            })
-                            }}
-                        >
-                            <option value="">Select an organiser</option>
-                            {organisers.map((organiser) => (
-                            <option key={organiser.id} value={organiser.id}>
-                                {organiser.name}
-                            </option>
-                            ))}
-                        </Form.Control>
-                        </InputGroup> */}
+                        
                     </Form>
                     </Modal.Body>
 

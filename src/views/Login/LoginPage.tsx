@@ -33,6 +33,7 @@ const LoginForm = () => {
             try{
                 const response = await axios.post('/api/login', ({email: email, password: password}))
                 if (response.status == 200) {
+                    console.log(response)
                     sessionStorage.setItem(
                         "TOKEN",
                         response.data.user.token
@@ -44,6 +45,14 @@ const LoginForm = () => {
                     sessionStorage.setItem(
                         "NAME",
                         response.data.user.name
+                    );
+                    sessionStorage.setItem(
+                        "ORG",
+                        response.data.user.organisation.id
+                    );
+                    sessionStorage.setItem(
+                        "APPROVED",
+                        response.data.user.approved
                     );
                     navigate("/")
                 }

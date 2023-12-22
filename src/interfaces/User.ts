@@ -4,11 +4,13 @@ export enum UserType {
     Admin
 }
 export default interface User {
+  type: number;
+  organisation: any;
   id: number;
   name: string;
   surname: string;
   email: string;
-  type: UserType;
+  role: UserType;
   organiser: Organiser;
   approved: Boolean;
 }
